@@ -1,0 +1,69 @@
+JSON ve JSONB arasındaki farklar:
+
+JSON veri türü, temel olarak boşluk, nesnelerdeki key'lerin sırası ve nesnelerdeki yinelenen 
+anahtarlar gibi önemsiz şeyleri bile koruyarak JSON verilerini ham biçimde depolayan bir 
+blobdur.
+
+JSONB veri türü, JSON verileri okumak için optimize edilmiş her seferinde JSON bloğunu yeniden
+ayrıştırmayacak özel biçimde saklar.
+
+
+JSON ve JSONB karşılaştırma:
+
+JSON 						JSONB
+-Veriyi daha hızlı yükler.			-Veriyi daha yavaş yükler.
+-Daha yavaş işler.				-Daha hızlı işler.
+-Indexlenebilir(text gibi).			-Daha 'derin' indexlenebilir (attribute/path gibi)
+-Duplicate veriyi kabul eder. Yani		-Dublicate veriyi kabul etmez.
+aynı veriden birden fazla olabilir.		-Whitespaceleri temizler.	
+ 						-Key sıralamalarını sabit tutmaz.
+-JSONB'ye göre daha düşük performanslıdır.		
+  
+TOAST(The Oversized-Attribute Storage Technique) : Postgresql'in fiziksel veri satırlarının bir 
+veri bloğunun boyutunu (8KB) aşmasını önlemek için kullandığı mekanizmadır. Bu nedenle çok büyük 
+alanların saklanması mümkün değildir. TOAST altyapısı, bellekteki büyük veri değerlerinin 
+işlenmesini iyileştirmek için de kullanlır. 
+
+Postgres sıkıştırma algoritması için pglz algoritmasını kullanır. Postgres 14 ile birlikte
+lz4 algoritmasını kullanmaya başlamıştır.
+
+pglz algoritmasından lz4 algoritmasına geçmek için;
+ALTER TABLE gbdjsonb ALTER COLUMN products SET COMPRESSION lz4; komutunu kullanabilirsiniz.
+
+JSONB Operatörleri:
+* -> : Array veya list içindeki veriyi json olarak alır.
+ Ex: SELECT yumdata->'Url' FROM packages_yum_postgresql_org WHERE yumdata->>'Licence'='PostgreSQL' LIMIT 1;
+
+* --> : Array veya list içindeki veriyi text olarak alır. 
+ Ex: SELECT yumdata->>'Url' FROM packages_yum_postgresql_org WHERE yumdata->>'Licence'='PostgreSQL' LIMIT 1; 
+
+* #> : Belirtilen path içindeki JSON veriyi arar.
+
+* @> : Soldaki JSON verisi sağdaki JSON içinde en üst seviyede var mı?
+* <@ : Sağdaki JSON verisi soldaki JSON içinde en üst seviyede var mı?
+* ?, ?!, ?& : Verilerin string JSON değeri içinden en üst seviyede key olarak var mı? 
+Şeklinde seçim yapar.
+
+JSON Kullanımı:
+* SELECT column_name->>'jsonb_elemanı' FROM table_name
+ Ex: SELECT yumdata->> 'Url' FROM packages_yum_postgresql_org;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
